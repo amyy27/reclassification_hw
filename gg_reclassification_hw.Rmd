@@ -7,12 +7,13 @@ output: html_document
 
 Reclassification of the sequences used in the MiSeq_SOP using the greengenes reference instead of silva. Downloaded the August 2013 release of gg_13_8_99 greengenes reference alignment from the mothur website.
 
-I followed and modified the commands found in the MiSeq_SOP (also found in the stability.batch file we downloaded for the class) to fit the greengenes reference. To find the start and end inputs for the region (V4) we wanted, I found [a post on the mothur forum](http://www.mothur.org/forum/viewtopic.php?t=2498) and aligned the *E. coli* sequence they used to the greengenes reference using the same primer set they used since the primers enclosed the V3 and V4 regions.
+I followed and modified the commands found in the MiSeq_SOP (also found in the stability.batch file we downloaded for the class) to fit the greengenes reference. To find the start and end inputs for the region (V4) we wanted, I found [a post on the mothur forum](http://www.mothur.org/forum/viewtopic.php?t=2498#p10529) and aligned the [*E. coli* sequence](http://www.ncbi.nlm.nih.gov/nuccore/174375?report=fasta) they used to the greengenes reference using the same primer set they used since the primers enclosed the V3 and V4 regions.
 
 I used the following code to align the E. coli sequence to the gg reference:
 ```align.seqs(fasta=ecoli.16srrna.pcr.fasta, reference=gg_13_8_99.refalign)```
 
 Then looked at the summary of the resulting aligned sequence to get an appropriate start and end of where my sequences will be in the reference:
+
 ```summary.seqs(fasta=ecoli.16srrna.pcr.align)```
 
 Which returns:
@@ -25,9 +26,10 @@ Median: 	1855	4051	429	0	6	1
 97.5%-tile:	1855	4051	429	0	6	1
 Maximum:	1855	4051	429	0	6	1
 Mean:	1855	4051	429	0	6
-# of Seqs:	1
-```
+# of Seqs:	1```
 
+Then I more or less followed the MiSeq_SOP. I then used start=1855 and end=4051 for the pcr.seq command to customized the gg database for these sequences:
+```pcr.seqs(fasta=gg_13_8_99.refalign, start=1855, end=4051, keepdots=F, processors=2)
 
 
 You can also embed plots, for example:
