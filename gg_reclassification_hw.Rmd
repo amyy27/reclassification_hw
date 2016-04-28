@@ -5,13 +5,30 @@ date: "April 27, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Reclassification of the sequences used in the MiSeq_SOP using the greengenes reference instead of silva. Downloaded the August 2013 release of gg_13_8_99 greengenes reference alignment from the mothur website.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+I followed and modified the commands found in the MiSeq_SOP (also found in the stability.batch file we downloaded for the class) to fit the greengenes reference. To find the start and end inputs for the region (V4) we wanted, I found [a post on the mothur forum](http://www.mothur.org/forum/viewtopic.php?t=2498) and aligned the *E. coli* sequence they used to the greengenes reference using the same primer set they used since the primers enclosed the V3 and V4 regions.
 
-```{r}
-summary(cars)
+I used the following code to align the E. coli sequence to the gg reference:
+```align.seqs(fasta=ecoli.16srrna.pcr.fasta, reference=gg_13_8_99.refalign)```
+
+Then looked at the summary of the resulting aligned sequence to get an appropriate start and end of where my sequences will be in the reference:
+```summary.seqs(fasta=ecoli.16srrna.pcr.align)```
+
+Which returns:
+```Start	End	NBases	Ambigs	Polymer	NumSeqs
+Minimum:	1855	4051	429	0	6	1
+2.5%-tile:	1855	4051	429	0	6	1
+25%-tile:	1855	4051	429	0	6	1
+Median: 	1855	4051	429	0	6	1
+75%-tile:	1855	4051	429	0	6	1
+97.5%-tile:	1855	4051	429	0	6	1
+Maximum:	1855	4051	429	0	6	1
+Mean:	1855	4051	429	0	6
+# of Seqs:	1
 ```
+
+
 
 You can also embed plots, for example:
 
