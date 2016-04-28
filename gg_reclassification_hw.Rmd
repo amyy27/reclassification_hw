@@ -5,41 +5,60 @@ date: "April 27, 2016"
 output: html_document
 ---
 
-Reclassification of the sequences used in the MiSeq_SOP using the greengenes reference instead of silva. Downloaded the August 2013 release of gg_13_8_99 greengenes reference alignment from the mothur website.
+Reclassification of the sequences used in the MiSeq_SOP using the greengenes reference instead of silva. Downloaded the August 2013 release of gg_13_8_99 greengenes reference alignment from the mothur website.  
 
 I followed and modified the commands found in the MiSeq_SOP (also found in the stability.batch file we downloaded for the class) to fit the greengenes reference. To find the start and end inputs for the region (V4) we wanted, I found [a post on the mothur forum](http://www.mothur.org/forum/viewtopic.php?t=2498#p10529) and aligned the [*E. coli* sequence](http://www.ncbi.nlm.nih.gov/nuccore/174375?report=fasta) they used to the greengenes reference using the same primer set they used since the primers enclosed the V3 and V4 regions.
 
-I used the following code to align the E. coli sequence to the gg reference:
+I used the following command to align the E. coli sequence to the gg reference:
 
-> align.seqs(fasta=ecoli.16srrna.pcr.fasta, reference=gg_13_8_99.refalign)
-
+##### align.seqs(fasta=ecoli.16srrna.pcr.fasta, reference=gg_13_8_99.refalign)
+<br>
 Then looked at the summary of the resulting aligned sequence to get an appropriate start and end of where my sequences will be in the reference:
 
-> summary.seqs(fasta=ecoli.16srrna.pcr.align)
+##### summary.seqs(fasta=ecoli.16srrna.pcr.align)
 
-Which summarized the sequences of starting at 1855 and ending at 4051.
+Which summarized the sequences of starting at 1855 and ending at 4051. Then I more or less followed the MiSeq_SOP using start=1855 and end=4051 for the first pcr.seq command to customized the gg database for these sequences:
 
-Then I more or less followed the MiSeq_SOP using start=1855 and end=4051 for the first pcr.seq command to customized the gg database for these sequences:
-
-> pcr.seqs(fasta=gg_13_8_99.refalign, start=1855, end=4051, keepdots=F, processors=2)
-
-> system(mv gg_13_8_99.pcr.refalign gg.v3v4.fasta)
-
-make.contigs(file=stability.files, processors=4)
-
+##### pcr.seqs(fasta=gg_13_8_99.refalign, start=1855, end=4051, keepdots=F, processors=2)
+##### system(mv gg_13_8_99.pcr.refalign gg.v3v4.fasta)
+##### make.contigs(file=stability.files, processors=4)
+<br>
 Just to double check the contig length, I did summary.seq to confirm that the contigs were still 275 and moved onto the next commands:
-> screen.seqs(fasta=current, group=current, maxambig=0, maxlength=275)
 
-> unique.seqs(fasta=stability.trim.contigs.good.fasta)
-
-> count.seqs(name=current, group=current)
-
+##### screen.seqs(fasta=current, group=current, maxambig=0, maxlength=275)
+##### unique.seqs(fasta=stability.trim.contigs.good.fasta)
+##### count.seqs(name=current, group=current)
+<br>
 Then aligned my sequences to my modified gg reference generated earlier:
 
-> align.seqs(fasta=current, reference=gg.v3v4.fasta)
-
+##### align.seqs(fasta=current, reference=gg.v3v4.fasta)
+<br>
 Based on the following summary.seq command, the output sequences mostly started at 409 and ended at 2196. The sequences that followed these parameters had a maximum homopolymer length of 6 so I kept the maxhomop option set to 8 for the screen.seq step:
 
-> summary.seqs(fasta=stability.trim.contigs.good.unique.align, count=stbility.trim.contigs.good.count_table)
+##### summary.seqs(fasta=stability.trim.contigs.good.unique.align, count=stbility.trim.contigs.good.count_table)
+##### screen.seqs(fasta=current, count=current, start=409, end=2196, maxhomop=8)
+<br>
+Then followed the MiSeq_SOP using the same parameters:
 
-> screen.seqs(fasta=current, count=current, start=409, end=2196, maxhomop=8)
+##### filter.seqs(fasta=current, vertical=T, trump=.)
+##### unique.seqs(fasta=current, count=current)
+##### pre.cluster(fasta=current, count=current, diffs=2)
+##### chimera.uchime(fasta=current, count=current, dereplicate=t)
+##### remove.seqs(fasta=current, accnos=current)
+##### classify.seqs(fasta=current, count=current, reference=trainset9_032012.pds.fasta, taxonomy=trainset9_032012.pds.tax, cutoff=80)
+##### remove.lineage(fasta=current, count=current, taxonomy=current, taxon=Chloroplast-Mitochondria-unknown-Archaea-Eukaryota)
+
+(Skipped the assessing error rates steps.)
+
+##### remove.groups(count=current, fasta=current, taxonomy=current, groups=Mock)
+##### cluster.split(fasta=current, count=current, taxonomy=current, splitmethod=classify, taxlevel=4, cutoff=0.15)
+<br>
+Make the shared file and rename:
+
+##### make.shared(list=current, count=current, label=0.03)
+##### system(mv stability.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.pick.pick.an.unique_list.shared stability.gg.an.shared)
+<br>
+Make the taxonomy file and rename:
+
+##### classify.otu(list=current, count=current, taxonomy=current, label=0.03)  
+##### system(mv stability.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.pick.pick.an.unique_list.0.03.cons.taxonomy stability.gg.an.cons.taxonomy)
