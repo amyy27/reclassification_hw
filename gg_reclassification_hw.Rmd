@@ -53,12 +53,66 @@ Then followed the MiSeq_SOP using the same parameters:
 ##### remove.groups(count=current, fasta=current, taxonomy=current, groups=Mock)
 ##### cluster.split(fasta=current, count=current, taxonomy=current, splitmethod=classify, taxlevel=4, cutoff=0.15)
 <br>
-Make the shared file and rename:
+Then made the shared file and renamed:
 
 ##### make.shared(list=current, count=current, label=0.03)
 ##### system(mv stability.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.pick.pick.an.unique_list.shared stability.gg.an.shared)
 <br>
-Make the taxonomy file and rename:
+Also made the taxonomy file and renamed:
 
 ##### classify.otu(list=current, count=current, taxonomy=current, label=0.03)  
 ##### system(mv stability.trim.contigs.good.unique.good.filter.unique.precluster.pick.pick.pick.pick.an.unique_list.0.03.cons.taxonomy stability.gg.an.cons.taxonomy)
+
+<br>
+To quickly compare the differences between the silva (in class) and greengenes classifications, I looked at the rarefaction curves (alpha diversity) for the day 0 and day 150 samples (F3D0 and F3D150).
+
+To get the rarefaction files, I used the rarefaction.single command on the silva and greengenes shared files:
+
+##### rarefaction.single(shared=stability.an.shared, calc=sobs, freq=100)
+
+##### rarefaction.single(shared=stability.gg.an.shared, calc=sobs, freq=100)
+
+Then I used the gglot2 package in RStudio to plot the curves using the following code:
+```{r}
+gg_rare <-read.table("stability.gg.an.groups.rarefaction", header=TRUE)
+silva_rare <-read.table("stability.an.groups.rarefaction", header=TRUE)
+rare_0_150 <- data.frame(gg_rare$numsampled, gg_rare$X0.03.F3D0, gg_rare$X0.03.F3D150, silva_rare$X0.03.F3D0, silva_rare$X0.03.F3D150)
+library(ggplot2)
+ggplot(rare_0_150, aes(gg_rare.numsampled)) + 
+  geom_line(aes(y=gg_rare.X0.03.F3D0), linetype = 2, colour="red", size=1) + 
+  geom_line(aes(y=gg_rare.X0.03.F3D150), colour="red", size=1.5) + 
+  geom_line(aes(y=silva_rare.X0.03.F3D0), linetype = 2, colour="black", size=1) + 
+  geom_line(aes(y=silva_rare.X0.03.F3D150), colour="black", size=1.5) + 
+  ggtitle("Silva (black) vs Greengenes (red) rarefaction curves for 
+          F3D0 (dashed line) and F3D150 (solid line)") + 
+  scale_x_continuous(limits = c(0,8000)) +
+  scale_y_continuous(limits = c(0,250)) +
+  labs(x="Number sampled", y="OTUs")
+```
+
+I think the warning messages are due to "NA" values in the data frame but don't affect the graph. There seems to be a slight increase in OTUs "identified" with the greengenes database compared to the silva one but the curves are pretty similar for samples for both days.
+
+<br>
+Then I quickly looked at beta diversity differences using the venn command but first determined the greengenes subsample size of 2440:
+
+##### count.groups(shared=stability.gg.an.shared)
+
+##### sub.sample(shared=stability.gg.an.shared, size=2440)
+
+Then I used the venn command for both classifications for days 1 and 150 (used the silva subsample.shared file from class):
+
+##### venn(shared=stability.an.0.03.subsample.shared, groups=F3D0-F3D150)
+
+##### venn(shared=stability.gg.an.0.03.subsample.shared, groups=F3D0-F3D150)
+
+Resulting in the following venn diagrams:
+
+### Silva:
+
+![](stability.an.0.03.subsample.0.03.sharedsobs.F3D0-F3D150.svg)
+
+### Greengenes:
+
+![](stability.gg.an.0.03.subsample.0.03.sharedsobs.F3D0-F3D150.svg)
+
+All the numbers look similar. Silva-derived classification results in 103 OTUs shared between samples from days 0 and 150 despite having a higher total richness whereas Greengenes-derived classification results in 93 OTUs shared between days 0 and 150. I could also create NMDS plots but I suspect the Silva and Greengenes plots will look similar between early and late timepoints.
